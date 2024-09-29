@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Step Count Display</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #6dd5fa, #2980b9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: slideDown 1.5s forwards;
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        p {
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            animation: fadeIn 2s 1s forwards; /* Delay the fade-in by 1s */
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        #stepCount {
+            font-weight: bold;
+            font-size: 2rem;
+            color: #ffeb3b;
+            animation: pulse 2s infinite;
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        .calories {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        #caloriesBurned {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #ffeb3b;
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        /* Button Styling */
+        .reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .reset-button:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
+        }
+
+        /* Hover Effects */
+        h1:hover {
+            color: #f39c12;
+            transform: scale(1.1);
+        }
+
+        p:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        #stepCount:hover, #caloriesBurned:hover {
+            transform: scale(1.2);
+            color: #e74c3c;
+        }
+
+        /* Keyframes for Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                text-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+            }
+            50% {
+                transform: scale(1.1);
+                text-shadow: 0 0 20px rgba(255, 235, 59, 1);
+            }
+            100% {
+                transform: scale(1);
+                text-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            p {
+                font-size: 1.2rem;
+                padding: 8px 16px;
+            }
+
+            #stepCount {
+                font-size: 1.5rem;
+            }
+
+            #caloriesBurned {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            #stepCount {
+                font-size: 1.2rem;
+            }
+
+            #caloriesBurned {
+                font-size: 1rem;
+            }
+        }
+    </style>
+    <script type="module">
+        // Import the Firebase modules you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEzNVVk26Gm5izWVfRaX1gbrbPzvjK8-g",
+            authDomain: "iot-project-sliit.firebaseapp.com",
+            databaseURL: "https://iot-project-sliit-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "iot-project-sliit",
+            storageBucket: "iot-project-sliit.appspot.com",
+            messagingSenderId: "639036929970",
+            appId: "1:639036929970:web:d55b3a6e56e64fa64ed6ab"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const stepCountRef = ref(database, 'stepCount');
+
+        // Fetch and display step count and calculate calories burned
+        onValue(stepCountRef, (snapshot) => {
+            const stepCount = snapshot.val();
+            document.getElementById('stepCount').innerText = stepCount;
+
+            // Calculate calories burned (0.04 calories per step)
+            const caloriesBurned = stepCount * 0.04;
+            document.getElementById('caloriesBurned').innerText = caloriesBurned.toFixed(2);
+        });
+
+        // Reset Step Count
+        function resetSteps() {
+            set(stepCountRef, 0)
+                .then(() => {
+                    console.log('Step count has been reset');
+                    document.getElementById('stepCount').innerText = '0';
+                    document.getElementById('caloriesBurned').innerText = '0.00';
+                })
+                .catch((error) => {
+                    console.error('Error resetting step count: ', error);
+                });
+        }
+
+        // Add Event Listener to Button
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.reset-button').addEventListener('click', resetSteps);
+        });
+    </script>
+</head>
+<body>
+
+    <h1>Step Count Data</h1>
+    <p>Steps: <span id="stepCount">Loading...</span></p>
+
+    <div class="calories">
+        <p>Calories Burned: <span id="caloriesBurned">0</span> kcal</p>
+    </div>
+
+    <button class="reset-button">Reset Steps</button>
+
+</body>
+</html>
