@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Step Count Display</title>
+    <title>Step Count </title>
     <style>
        /* General Reset */
 /* General Reset */
@@ -26,7 +26,7 @@ body {
     padding: 20px;
 }
 #content{
-    padding-top: 200px;
+    padding-top: 500px;
 }
 /* Footer Styling */
 footer {
@@ -126,8 +126,8 @@ th, td {
 /* Button Styling */
 #setGoalBtn, #setWeightBtn {
     padding: 15px;
-    background-color: #a8a8a8; /* Medium gray button */
-    color: white;
+    background-color: #686565; /* Medium gray button */
+    color: rgb(0, 0, 0);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -252,7 +252,22 @@ th, td {
     margin-bottom: 15px;
     color: #f9f9f9;
 }
+.back-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #004453;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
 
+        .back-button:hover {
+            background-color: #00118f;
+        }
 /* Responsive Design */
 @media (max-width: 768px) {
     h1 {
@@ -511,12 +526,32 @@ window.resetData = function() {
     window.onload = function () {
         updateDateTime(); // Initial call to display date and time on load
     };
+
+    // Store step count history in Firebase with the current date as the key
+function saveStepHistory(steps) {
+    const today = new Date();
+    const formattedDate = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`; // Format as MM-DD-YYYY
+    const historyRef = ref(database, `history/${formattedDate}`); // Store history by date
+    set(historyRef, steps);
+}
+
+// Whenever step count updates, save to history
+onValue(stepCountRef, (snapshot) => {
+    stepCount = snapshot.val();
+    document.getElementById('stepCount').innerText = stepCount;
+    updateCalories(stepCount);
+    updateProgress(stepCount);
+    
+    // Save step count to history
+    saveStepHistory(stepCount);
+});
+
         
 </script>
 
 </head>
 <body>
-
+<br><br><br><br><br><br><br><br>
     <!-- Loader -->
     <div id="loader" class="loader"></div>
 
@@ -564,7 +599,7 @@ window.resetData = function() {
         <!-- Reset button -->
         <button id="resetBtn" type="button" onclick="resetData()">Reset</button>
         <br>
-
+        <a href="histotry.html" class="back-button">History Step Count</a>
 
     </div>
     <br>
