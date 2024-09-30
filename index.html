@@ -5,207 +5,511 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firebase Step Count Display</title>
     <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+       /* General Reset */
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        /* Body Styling */
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #6dd5fa, #2980b9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #fff;
-        }
-
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-
-        p, table {
-            font-size: 1.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin: 10px;
-        }
-
-        #stepCount {
-            font-weight: bold;
-            font-size: 2rem;
-        }
-
-        table {
-            width: 80%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid white;
-            text-align: center;
-        }
-
-        #goalInput {
-            margin: 20px 0;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-        }
-
-        #setGoalBtn {
-            padding: 10px 20px;
-            background-color: #2980b9;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .progress-bar {
+/* Body Styling */
+body {
+    font-family: 'Poppins', sans-serif; /* Modern font */
+    background-color: #1c1c1c; /* Dark premium gray background */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #f1f1f1;
+    padding: 20px;
+}
+#content{
+    padding-top: 200px;
+}
+/* Footer Styling */
+footer {
             width: 100%;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .progress {
-            height: 20px;
-            background-color: #27ae60;
-            border-radius: 10px;
-            width: 0%;
+            padding: 20px;
+            background-color: #333; /* Darker gray footer background */
+            color: #f1f1f1;
             text-align: center;
-            color: white;
+            position: relative;
+            bottom: 0;
+            left: 0;
+            font-size: 0.9rem;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            p, table {
-                font-size: 1.2rem;
-            }
-
-            #stepCount {
-                font-size: 1.5rem;
-            }
+        footer a {
+            color: #f1f1f1;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
         }
 
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            p, table {
-                font-size: 1rem;
-            }
-
-            #stepCount {
-                font-size: 1.2rem;
-            }
+        footer a:hover {
+            color: #00be10; /* Hover color for links */
         }
+
+        #content {
+            padding-top: 200px;
+        }
+
+        /* Container Styling */
+        .container {
+            width: 100%;
+            max-width: 700px;
+            height: auto;
+            padding: 30px;
+            background-color: #2f2f2f; /* Medium gray container background */
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
+            text-align: center;
+           
+        }
+
+/* Heading Styling */
+h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #f1f1f1; /* Light gray for headings */
+}
+
+/* Text and Table Styling */
+p, table {
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.05); /* Subtle background for text */
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin: 10px 0;
+    color: #f1f1f1;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    color: #f1f1f1;
+}
+
+/* Input Field Styling */
+#goalInput, #weightInput {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #3a3a3a; /* Darker input background */
+    color: #f1f1f1;
+    border: 1px solid #a8a8a8; /* Light gray border */
+    font-size: 1.2rem;
+    width: 100%;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#goalInput::placeholder, #weightInput::placeholder {
+    color: #bbb; /* Light gray placeholder */
+}
+
+#goalInput:focus, #weightInput:focus {
+    background-color: #444; /* Slightly lighter focus background */
+    border-color: #f1f1f1; /* Light gray border on focus */
+    outline: none;
+}
+
+/* Button Styling */
+#setGoalBtn, #setWeightBtn {
+    padding: 15px;
+    background-color: #a8a8a8; /* Medium gray button */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#setGoalBtn:hover, #setWeightBtn:hover, #resetBtn:hover {
+    background-color: #f1f1f1; /* Lighter hover effect */
+    color: #1c1c1c; /* Darker text on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Add depth on hover */
+}
+
+/* Progress Bar Styling */
+.progress-bar {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 25px;
+    background-color: #00be10; /* Light gray progress bar */
+    border-radius: 15px;
+    width: 0%;
+    text-align: center;
+    color: #1c1c1c;
+    transition: width 0.6s ease;
+}
+
+/* Loader Styling */
+.loader {
+    border: 16px solid #3a3a3a;
+    border-radius: 50%;
+    border-top: 16px solid #ffffff;
+    width: 100px;
+    height: 100px;
+    animation: spin 1.5s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Name Popup Styling */
+#namePopup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #2f2f2f; /* Medium gray popup */
+    color: #f1f1f1;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+#namePopup input {
+    padding: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+    border: 1px solid #a8a8a8;
+    border-radius: 8px;
+    background-color: #3a3a3a;
+    color: #f1f1f1;
+    font-size: 1.2rem;
+}
+
+#namePopup button {
+    padding: 15px;
+    width: 100%;
+    background-color: #a8a8a8; /* Medium gray button */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+}
+
+#namePopup button:hover {
+    background-color: #f1f1f1; /* Light gray hover effect */
+    color: #1c1c1c; /* Dark text on hover */
+}
+
+/* Reset Button Styling */
+#resetBtn{
+    padding: 15px;
+    background-color: #cc0000; /* Medium gray button */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(66, 66, 66, 0.2);
+}
+#resetBtn:hover {
+    background-color: #f1f1f1; /* Lighter hover effect */
+    color: #1c1c1c; /* Darker text on hover */
+    box-shadow: 0 6px 12px rgba(66, 66, 66, 0.3); /* Add depth on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    p, table {
+        font-size: 1.2rem;
+    }
+
+    #stepCount {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    p, table {
+        font-size: 1rem;
+    }
+
+    #stepCount {
+        font-size: 1.2rem;
+    }
+}
+
+
     </style>
-    <script type="module">
-        // Import the Firebase modules you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+   <script type="module">
+    // Import the Firebase modules you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
 
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAEzNVVk26Gm5izWVfRaX1gbrbPzvjK8-g",
-            authDomain: "iot-project-sliit.firebaseapp.com",
-            databaseURL: "https://iot-project-sliit-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "iot-project-sliit",
-            storageBucket: "iot-project-sliit.appspot.com",
-            messagingSenderId: "639036929970",
-            appId: "1:639036929970:web:d55b3a6e56e64fa64ed6ab"
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAEzNVVk26Gm5izWVfRaX1gbrbPzvjK8-g",
+        authDomain: "iot-project-sliit.firebaseapp.com",
+        databaseURL: "https://iot-project-sliit-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "iot-project-sliit",
+        storageBucket: "iot-project-sliit.appspot.com",
+        messagingSenderId: "639036929970",
+        appId: "1:639036929970:web:d55b3a6e56e64fa64ed6ab"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // References for step count, goal, and weight
+    const stepCountRef = ref(database, 'stepCount');
+    const goalRef = ref(database, 'goal');
+    const weightRef = ref(database, 'weight');  // Reference to store user's weight
+
+    // Fetch and display step count and update calories burned and progress
+    let stepCount = 0;
+    let userWeight = 70;  // Default weight
+
+    // Show loader until data is loaded
+    window.onload = () => {
+        const loader = document.getElementById('loader');
+        const content = document.getElementById('content');
+        content.style.display = 'none';
+
+        // Simulate a delay for loading (usually removed in production)
+        setTimeout(() => {
+            content.style.display = 'block';
+            loader.style.display = 'none';
+        }, 2000);  // Simulate 2-second load time
+    };
+
+    onValue(stepCountRef, (snapshot) => {
+        stepCount = snapshot.val();
+        document.getElementById('stepCount').innerText = stepCount;
+        updateCalories(stepCount);
+        updateProgress(stepCount);
+    });
+
+    // Fetch weight from database
+    onValue(weightRef, (snapshot) => {
+        userWeight = snapshot.val() || 70;  // Use default weight of 70kg if no weight is set
+        document.getElementById('weightDisplay').innerText = userWeight + ' kg';
+        updateCalories(stepCount);
+    });
+
+    // Function to calculate calories burned based on MET, weight, and duration
+    function updateCalories(steps) {
+        const MET = 3.5;  // MET value for walking at a moderate pace
+        const stepsPerMinute = 100;  // Average walking speed
+        const duration = steps / stepsPerMinute / 60;  // Convert to hours
+        const caloriesBurned = (MET * userWeight * duration).toFixed(2);
+        const distance = (steps * 0.00078).toFixed(2);  // Average step length = 0.78m (in km)
+
+        document.getElementById('calories').innerText = caloriesBurned;
+        document.getElementById('distance').innerText = distance;
+    }
+
+    // Show name popup if no name is set
+    window.addEventListener('load', () => {
+        let userName = localStorage.getItem('userName');
+        if (!userName) {
+            document.getElementById('namePopup').style.display = 'block';
+        } else {
+            document.getElementById('userNameDisplay').innerText = userName;
+        }
+    });
+
+    // Attach the saveName function to the window object
+    window.saveName = function() {
+        const name = document.getElementById('nameInput').value;
+        if (name.trim()) {
+            localStorage.setItem('userName', name);
+            document.getElementById('userNameDisplay').innerText = name;
+            document.getElementById('namePopup').style.display = 'none';
+        }
+    };
+
+    // Set goal
+    document.getElementById('setGoalBtn').addEventListener('click', () => {
+        const goal = document.getElementById('goalInput').value;
+        set(goalRef, goal);
+    });
+
+    // Set weight
+    document.getElementById('setWeightBtn').addEventListener('click', () => {
+        const weight = document.getElementById('weightInput').value;
+        set(weightRef, weight);
+    });
+
+
+    // Reset all data
+// Reset all data
+window.resetData = function() {
+    // Reset name, weight, goal, and step count in Firebase
+    set(stepCountRef, 0);  // Reset step count
+    set(goalRef, 10000);   // Reset goal to default (10000)
+    set(weightRef, 70);    // Reset weight to default (70kg)
+
+    // Clear localStorage (name)
+    localStorage.removeItem('userName');
+    
+    // Reset UI elements
+    document.getElementById('stepCount').innerText = 0;
+    document.getElementById('goalDisplay').innerText = 10000;
+    document.getElementById('weightDisplay').innerText = '70 kg';
+    document.getElementById('calories').innerText = 0;
+    document.getElementById('distance').innerText = 0;
+    document.getElementById('progress').style.width = '0%';
+    document.getElementById('progress').innerText = '0%';
+
+    // Refresh the web page after resetting the data
+    location.reload();
+};
+
+
+
+
+
+    // Update progress bar
+    onValue(goalRef, (snapshot) => {
+        const goal = snapshot.val();
+        document.getElementById('goalDisplay').innerText = goal;
+        updateProgress(stepCount, goal);
+    });
+
+    function updateProgress(steps, goal = 10000) {
+        const progress = Math.min((steps / goal) * 100, 100).toFixed(2);
+        document.getElementById('progress').style.width = progress + '%';
+        document.getElementById('progress').innerText = progress + '%';
+    }
+    window.onload = function () {
+            // Add event listeners for "Enter" key navigation
+            const inputs = document.querySelectorAll('input');
+
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Prevent form submission or any default behavior
+                        // Move focus to the next input if it exists
+                        const nextInput = inputs[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                        } else {
+                            // Optionally, submit the form or do something else when all inputs are filled
+                            document.getElementById('setGoalBtn').click(); // Example of clicking a button
+                        }
+                    }
+                });
+            });
         };
+        
+</script>
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // Reference for step count
-        const stepCountRef = ref(database, 'stepCount');
-        const goalRef = ref(database, 'goal');
-
-        // Fetch and display step count and update calories burned and progress
-        let stepCount = 0;
-        onValue(stepCountRef, (snapshot) => {
-            stepCount = snapshot.val();
-            document.getElementById('stepCount').innerText = stepCount;
-            updateCalories(stepCount);
-            updateProgress(stepCount);
-        });
-
-        // Function to update calories burned
-        function updateCalories(steps) {
-            const calories = (steps * 0.05).toFixed(2); // 0.05 calories per step
-            const distance = (steps * 0.00078).toFixed(2); // Average step length = 0.78m (in km)
-            document.getElementById('calories').innerText = calories;
-            document.getElementById('distance').innerText = distance;
-        }
-
-        // Set goal
-        document.getElementById('setGoalBtn').addEventListener('click', () => {
-            const goal = document.getElementById('goalInput').value;
-            set(goalRef, goal);
-        });
-
-        // Update progress bar
-        onValue(goalRef, (snapshot) => {
-            const goal = snapshot.val();
-            document.getElementById('goalDisplay').innerText = goal;
-            updateProgress(stepCount, goal);
-        });
-
-        function updateProgress(steps, goal = 10000) {
-            const progress = Math.min((steps / goal) * 100, 100).toFixed(2);
-            document.getElementById('progress').style.width = progress + '%';
-            document.getElementById('progress').innerText = progress + '%';
-        }
-    </script>
 </head>
 <body>
 
-    <h1>Step Count Data</h1>
-    <p>Steps: <span id="stepCount">Loading...</span></p>
+    <!-- Loader -->
+    <div id="loader" class="loader"></div>
 
-    <!-- Calories burned and distance walked table -->
-    <table>
-        <tr>
-            <th>Steps</th>
-            <th>Calories Burned</th>
-            <th>Distance (km)</th>
-        </tr>
-        <tr>
-            <td id="stepCount">Loading...</td>
-            <td id="calories">0</td>
-            <td id="distance">0</td>
-        </tr>
-    </table>
+    <!-- Content -->
+    <div id="content">
+        <h1>Welcome, <span id="userNameDisplay">User</span></h1>
 
-    <!-- Goal setting -->
-    <div>
-        <input type="number" id="goalInput" placeholder="Set your step goal" />
-        <button id="setGoalBtn">Set Goal</button>
+        <h2>Step Count Data</h2> 
+        <p>Steps: <span id="stepCount">Loading...</span></p>
+        <p>Current Weight: <span id="weightDisplay">70 kg</span></p>
+        
+        <!-- Weight setting -->
+        <div>
+            <input type="number" id="weightInput" placeholder="Enter your weight (kg)" />
+            <button id="setWeightBtn">Set Weight</button>
+        </div>
+        
+        <!-- Calories burned and distance walked table -->
+        <table>
+            <tr>
+                <th>Calories Burned</th>
+                <th>Distance (km)</th>
+            </tr>
+            <tr>
+                <td id="calories">0</td>
+                <td id="distance">0</td>
+            </tr>
+        </table>
+
+        <!-- Goal setting -->
+        <div>
+            <input type="number" id="goalInput" placeholder="Set your step goal" />
+            <button id="setGoalBtn">Set Goal</button>
+        </div>
+
+        <p>Your Goal: <span id="goalDisplay">10000</span> steps</p>
+
+        <!-- Progress bar -->
+        <div class="progress-bar">
+            <div class="progress" id="progress">0%</div>
+        </div>
+
+        <!-- Reset button -->
+        <button id="resetBtn" type="button" onclick="resetData()">Reset</button>
+
+
     </div>
 
-    <p>Your Goal: <span id="goalDisplay">10000</span> steps</p>
+    <!-- Footer Section -->
+    <footer>
+        <div>  V1.0.1 &copy; 2024 GD Creations. All rights reserved.</div>
+        <div>
+            <a href="#privacy">Privacy Policy</a> | 
+            <a href="#terms">Terms of Service</a> | 
+            <a href="#contact">Contact Us</a>
+        </div>
+    </footer>
 
-    <!-- Progress bar -->
-    <div class="progress-bar">
-        <div class="progress" id="progress">0%</div>
+
+    <!-- Name Popup -->
+    <div id="namePopup">
+        <h2>Please enter your name:</h2>
+        <input type="text" id="nameInput" placeholder="Enter your name" /><br>
+        <button onclick="saveName()">Save Name</button>
     </div>
+
+
 
 </body>
 </html>
