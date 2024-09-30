@@ -166,14 +166,14 @@ th, td {
 
 /* Loader Styling */
 .loader {
-    border: 16px solid #3a3a3a;
-    border-radius: 50%;
-    border-top: 16px solid #ffffff;
-    width: 100px;
-    height: 100px;
-    animation: spin 1.5s linear infinite;
-    margin: 0 auto;
-}
+            border: 16px solid #3a3a3a;
+            border-radius: 50%;
+            border-top: 16px solid #ffffff;
+            width: 100px;
+            height: 100px;
+            animation: spin 1.5s linear infinite;
+            margin: 0 auto;
+        }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -245,6 +245,13 @@ th, td {
     color: #1c1c1c; /* Darker text on hover */
     box-shadow: 0 6px 12px rgba(66, 66, 66, 0.3); /* Add depth on hover */
 }
+/* Date & Time Styling */
+#dateTime {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #f9f9f9;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -273,6 +280,51 @@ th, td {
     #stepCount {
         font-size: 1.2rem;
     }
+}
+/* Add a glowing animation for the progress bar when the goal is complete */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px #00be10, 0 0 10px #00be10, 0 0 20px #00be10;
+    }
+    50% {
+        box-shadow: 0 0 15px #00be10, 0 0 30px #00be10, 0 0 45px #00be10;
+    }
+    100% {
+        box-shadow: 0 0 5px #00be10, 0 0 10px #00be10, 0 0 20px #00be10;
+    }
+}
+
+/* Confetti animation keyframes */
+@keyframes confetti {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+/* Confetti particle styling */
+.confetti {
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 20px;
+    background-color: #f9d423;
+    animation: confetti 2s ease-out infinite;
+}
+
+.confetti:nth-child(2n) {
+    background-color: #f02fc2;
+}
+
+.confetti:nth-child(3n) {
+    background-color: #16c4ff;
+}
+
+/* Apply glow animation when goal is reached */
+.glowing-progress {
+    animation: glow 1s infinite alternate;
 }
 
 
@@ -307,17 +359,17 @@ th, td {
     let userWeight = 70;  // Default weight
 
     // Show loader until data is loaded
-    window.onload = () => {
-        const loader = document.getElementById('loader');
-        const content = document.getElementById('content');
-        content.style.display = 'none';
+    window.addEventListener('load', () => {
+            // Simulate a loading time (you can remove this setTimeout in production)
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                const content = document.getElementById('content');
 
-        // Simulate a delay for loading (usually removed in production)
-        setTimeout(() => {
-            content.style.display = 'block';
-            loader.style.display = 'none';
-        }, 2000);  // Simulate 2-second load time
-    };
+                // Hide the loader and show the content after the page is fully loaded
+                loader.style.display = 'none';
+                content.style.display = 'block';
+            }, 2000);  // Simulate 2 seconds of loading time
+        });
 
     onValue(stepCountRef, (snapshot) => {
         stepCount = snapshot.val();
@@ -438,6 +490,27 @@ window.resetData = function() {
                 });
             });
         };
+
+        // JavaScript to display the live date and time
+    function updateDateTime() {
+        const dateTimeElement = document.getElementById('dateTime');
+        const now = new Date();
+
+        // Format the date and time
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateString = now.toLocaleDateString('en-US', options);
+        const timeString = now.toLocaleTimeString('en-US', { hour12: true });
+
+        // Update the content
+        dateTimeElement.innerText = `${dateString} | ${timeString}`;
+    }
+
+    // Update the date and time every second
+    setInterval(updateDateTime, 1000);
+    
+    window.onload = function () {
+        updateDateTime(); // Initial call to display date and time on load
+    };
         
 </script>
 
@@ -449,6 +522,8 @@ window.resetData = function() {
 
     <!-- Content -->
     <div id="content">
+        <!-- Live Date & Time Display -->
+        <div id="dateTime">Loading date and time...</div>
         <h1>Welcome, <span id="userNameDisplay">User</span></h1>
 
         <h2>Step Count Data</h2> 
