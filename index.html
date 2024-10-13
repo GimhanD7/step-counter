@@ -3,347 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Step Count </title>
-    <style>
-       /* General Reset */
-/* General Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+    <title>Step Count with Fall Detection</title>
+    <link rel="stylesheet" href="styles.css">
 
-/* Body Styling */
-body {
-    font-family: 'Poppins', sans-serif; /* Modern font */
-    background-color: #1c1c1c; /* Dark premium gray background */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    color: #f1f1f1;
-    padding: 20px;
-}
-#content{
-    padding-top: 500px;
-}
-/* Footer Styling */
-footer {
-            width: 100%;
-            padding: 20px;
-            background-color: #333; /* Darker gray footer background */
-            color: #f1f1f1;
-            text-align: center;
-            position: relative;
-            bottom: 0;
-            left: 0;
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: #f1f1f1;
-            text-decoration: none;
-            margin: 0 10px;
-            transition: color 0.3s ease;
-        }
-
-        footer a:hover {
-            color: #00be10; /* Hover color for links */
-        }
-
-        #content {
-            padding-top: 200px;
-        }
-
-        /* Container Styling */
-        .container {
-            width: 100%;
-            max-width: 700px;
-            height: auto;
-            padding: 30px;
-            background-color: #2f2f2f; /* Medium gray container background */
-            border-radius: 15px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
-            text-align: center;
-           
-        }
-
-/* Heading Styling */
-h1 {
-    font-size: 3rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #f1f1f1; /* Light gray for headings */
-}
-
-/* Text and Table Styling */
-p, table {
-    font-size: 1.5rem;
-    background: rgba(255, 255, 255, 0.05); /* Subtle background for text */
-    padding: 15px 25px;
-    border-radius: 10px;
-    margin: 10px 0;
-    color: #f1f1f1;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-    color: #f1f1f1;
-}
-
-/* Input Field Styling */
-#goalInput, #weightInput {
-    margin: 20px 0;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #3a3a3a; /* Darker input background */
-    color: #f1f1f1;
-    border: 1px solid #a8a8a8; /* Light gray border */
-    font-size: 1.2rem;
-    width: 100%;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-#goalInput::placeholder, #weightInput::placeholder {
-    color: #bbb; /* Light gray placeholder */
-}
-
-#goalInput:focus, #weightInput:focus {
-    background-color: #444; /* Slightly lighter focus background */
-    border-color: #f1f1f1; /* Light gray border on focus */
-    outline: none;
-}
-
-/* Button Styling */
-#setGoalBtn, #setWeightBtn {
-    padding: 15px;
-    background-color: #686565; /* Medium gray button */
-    color: rgb(0, 0, 0);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
-    margin-top: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-#setGoalBtn:hover, #setWeightBtn:hover, #resetBtn:hover {
-    background-color: #f1f1f1; /* Lighter hover effect */
-    color: #1c1c1c; /* Darker text on hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Add depth on hover */
-}
-
-/* Progress Bar Styling */
-.progress-bar {
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    margin-top: 20px;
-    overflow: hidden;
-    color: #ffffff;
-}
-
-.progress {
-    height: 25px;
-    background-color: #00be10; /* Light gray progress bar */
-    border-radius: 15px;
-    width: 0%;
-    text-align: center;
-    color: #ffffff;
-    transition: width 0.6s ease;
-}
-
-/* Loader Styling */
-.loader {
-            border: 16px solid #3a3a3a;
-            border-radius: 50%;
-            border-top: 16px solid #ffffff;
-            width: 100px;
-            height: 100px;
-            animation: spin 1.5s linear infinite;
-            margin: 0 auto;
-        }
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Name Popup Styling */
-#namePopup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #2f2f2f; /* Medium gray popup */
-    color: #f1f1f1;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-    z-index: 100;
-    max-width: 400px;
-    width: 100%;
-    text-align: center;
-}
-
-#namePopup input {
-    padding: 15px;
-    width: 100%;
-    margin-bottom: 20px;
-    border: 1px solid #a8a8a8;
-    border-radius: 8px;
-    background-color: #3a3a3a;
-    color: #f1f1f1;
-    font-size: 1.2rem;
-}
-
-#namePopup button {
-    padding: 15px;
-    width: 100%;
-    background-color: #a8a8a8; /* Medium gray button */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: background-color 0.3s ease;
-}
-
-#namePopup button:hover {
-    background-color: #f1f1f1; /* Light gray hover effect */
-    color: #1c1c1c; /* Dark text on hover */
-}
-
-/* Reset Button Styling */
-#resetBtn{
-    padding: 15px;
-    background-color: #cc0000; /* Medium gray button */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
-    margin-top: 10px;
-    box-shadow: 0 4px 10px rgba(66, 66, 66, 0.2);
-}
-#resetBtn:hover {
-    background-color: #f1f1f1; /* Lighter hover effect */
-    color: #1c1c1c; /* Darker text on hover */
-    box-shadow: 0 6px 12px rgba(66, 66, 66, 0.3); /* Add depth on hover */
-}
-/* Date & Time Styling */
-#dateTime {
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin-bottom: 15px;
-    color: #f9f9f9;
-}
-.back-button {
-            display: block;
-            width: 200px;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #004453;
-            color: #fff;
-            text-align: center;
-            border-radius: 10px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-
-        .back-button:hover {
-            background-color: #00118f;
-        }
-/* Responsive Design */
-@media (max-width: 768px) {
-    h1 {
-        font-size: 2rem;
-    }
-
-    p, table {
-        font-size: 1.2rem;
-    }
-
-    #stepCount {
-        font-size: 1.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.5rem;
-    }
-
-    p, table {
-        font-size: 1rem;
-    }
-
-    #stepCount {
-        font-size: 1.2rem;
-    }
-}
-/* Add a glowing animation for the progress bar when the goal is complete */
-@keyframes glow {
-    0% {
-        box-shadow: 0 0 5px #00be10, 0 0 10px #00be10, 0 0 20px #00be10;
-    }
-    50% {
-        box-shadow: 0 0 15px #00be10, 0 0 30px #00be10, 0 0 45px #00be10;
-    }
-    100% {
-        box-shadow: 0 0 5px #00be10, 0 0 10px #00be10, 0 0 20px #00be10;
-    }
-}
-
-/* Confetti animation keyframes */
-@keyframes confetti {
-    0% {
-        transform: translateY(0);
-    }
-    100% {
-        transform: translateY(100vh);
-    }
-}
-
-/* Confetti particle styling */
-.confetti {
-    position: absolute;
-    top: 0;
-    width: 10px;
-    height: 20px;
-    background-color: #f9d423;
-    animation: confetti 2s ease-out infinite;
-}
-
-.confetti:nth-child(2n) {
-    background-color: #f02fc2;
-}
-
-.confetti:nth-child(3n) {
-    background-color: #16c4ff;
-}
-
-/* Apply glow animation when goal is reached */
-.glowing-progress {
-    animation: glow 1s infinite alternate;
-}
-
-
-    </style>
    <script type="module">
     // Import the Firebase modules you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
@@ -364,10 +26,11 @@ th, td {
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // References for step count, goal, and weight
+    // References for step count, goal, weight, and fall detection
     const stepCountRef = ref(database, 'stepCount');
     const goalRef = ref(database, 'goal');
     const weightRef = ref(database, 'weight');  // Reference to store user's weight
+    const fallDetectedRef = ref(database, 'fallDetected');  // Reference for fall detection status
 
     // Fetch and display step count and update calories burned and progress
     let stepCount = 0;
@@ -375,16 +38,15 @@ th, td {
 
     // Show loader until data is loaded
     window.addEventListener('load', () => {
-            // Simulate a loading time (you can remove this setTimeout in production)
-            setTimeout(() => {
-                const loader = document.getElementById('loader');
-                const content = document.getElementById('content');
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
 
-                // Hide the loader and show the content after the page is fully loaded
-                loader.style.display = 'none';
-                content.style.display = 'block';
-            }, 2000);  // Simulate 2 seconds of loading time
-        });
+            // Hide the loader and show the content after the page is fully loaded
+            loader.style.display = 'none';
+            content.style.display = 'block';
+        }, 2000);  // Simulate 2 seconds of loading time
+    });
 
     onValue(stepCountRef, (snapshot) => {
         stepCount = snapshot.val();
@@ -392,6 +54,28 @@ th, td {
         updateCalories(stepCount);
         updateProgress(stepCount);
     });
+
+    // Fetch fall detection status from Firebase
+    onValue(fallDetectedRef, (snapshot) => {
+        const fallDetected = snapshot.val();
+        const fallStatusElement = document.getElementById('fallStatus');
+        
+        if (fallDetected) {
+            fallStatusElement.innerText = "Fall Detected!";
+            fallStatusElement.style.color = "red";  // Highlight the fall detection in red
+
+            // After 10 seconds, revert back to "No Falls Detected"
+            setTimeout(() => {
+                fallStatusElement.innerText = "No Falls Detected";
+                fallStatusElement.style.color = "green";  // Default green color
+            }, 5000);  // 10 seconds delay
+        } else {
+            fallStatusElement.innerText = "No Falls Detected";
+            fallStatusElement.style.color = "green";  // Default green color
+        }
+    });
+
+
 
     // Fetch weight from database
     onValue(weightRef, (snapshot) => {
@@ -444,34 +128,30 @@ th, td {
         set(weightRef, weight);
     });
 
-
     // Reset all data
-// Reset all data
-window.resetData = function() {
-    // Reset name, weight, goal, and step count in Firebase
-    set(stepCountRef, 0);  // Reset step count
-    set(goalRef, 10000);   // Reset goal to default (10000)
-    set(weightRef, 70);    // Reset weight to default (70kg)
+    window.resetData = function() {
+        set(stepCountRef, 0);  // Reset step count
+        set(goalRef, 10000);   // Reset goal to default (10000)
+        set(weightRef, 70);    // Reset weight to default (70kg)
+        set(fallDetectedRef, false); // Reset fall detection to false
 
-    // Clear localStorage (name)
-    localStorage.removeItem('userName');
-    
-    // Reset UI elements
-    document.getElementById('stepCount').innerText = 0;
-    document.getElementById('goalDisplay').innerText = 10000;
-    document.getElementById('weightDisplay').innerText = '70 kg';
-    document.getElementById('calories').innerText = 0;
-    document.getElementById('distance').innerText = 0;
-    document.getElementById('progress').style.width = '0%';
-    document.getElementById('progress').innerText = '0%';
+        // Clear localStorage (name)
+        localStorage.removeItem('userName');
+        
+        // Reset UI elements
+        document.getElementById('stepCount').innerText = 0;
+        document.getElementById('goalDisplay').innerText = 10000;
+        document.getElementById('weightDisplay').innerText = '70 kg';
+        document.getElementById('calories').innerText = 0;
+        document.getElementById('distance').innerText = 0;
+        document.getElementById('progress').style.width = '0%';
+        document.getElementById('progress').innerText = '0%';
+        document.getElementById('fallStatus').innerText = "No Falls Detected";
+        document.getElementById('fallStatus').style.color = "green";
 
-    // Refresh the web page after resetting the data
-    location.reload();
-};
-
-
-
-
+        // Refresh the web page after resetting the data
+        location.reload();
+    };
 
     // Update progress bar
     onValue(goalRef, (snapshot) => {
@@ -485,28 +165,8 @@ window.resetData = function() {
         document.getElementById('progress').style.width = progress + '%';
         document.getElementById('progress').innerText = progress + '%';
     }
-    window.onload = function () {
-            // Add event listeners for "Enter" key navigation
-            const inputs = document.querySelectorAll('input');
-
-            inputs.forEach((input, index) => {
-                input.addEventListener('keydown', function (event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault(); // Prevent form submission or any default behavior
-                        // Move focus to the next input if it exists
-                        const nextInput = inputs[index + 1];
-                        if (nextInput) {
-                            nextInput.focus();
-                        } else {
-                            // Optionally, submit the form or do something else when all inputs are filled
-                            document.getElementById('setGoalBtn').click(); // Example of clicking a button
-                        }
-                    }
-                });
-            });
-        };
-
-        // JavaScript to display the live date and time
+        
+    // JavaScript to display the live date and time
     function updateDateTime() {
         const dateTimeElement = document.getElementById('dateTime');
         const now = new Date();
@@ -528,30 +188,29 @@ window.resetData = function() {
     };
 
     // Store step count history in Firebase with the current date as the key
-function saveStepHistory(steps) {
-    const today = new Date();
-    const formattedDate = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`; // Format as MM-DD-YYYY
-    const historyRef = ref(database, `history/${formattedDate}`); // Store history by date
-    set(historyRef, steps);
-}
+    function saveStepHistory(steps) {
+        const today = new Date();
+        const formattedDate = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`; // Format as MM-DD-YYYY
+        const historyRef = ref(database, `history/${formattedDate}`); // Store history by date
+        set(historyRef, steps);
+    }
 
-// Whenever step count updates, save to history
-onValue(stepCountRef, (snapshot) => {
-    stepCount = snapshot.val();
-    document.getElementById('stepCount').innerText = stepCount;
-    updateCalories(stepCount);
-    updateProgress(stepCount);
-    
-    // Save step count to history
-    saveStepHistory(stepCount);
-});
-
+    // Whenever step count updates, save to history
+    onValue(stepCountRef, (snapshot) => {
+        stepCount = snapshot.val();
+        document.getElementById('stepCount').innerText = stepCount;
+        updateCalories(stepCount);
+        updateProgress(stepCount);
+        
+        // Save step count to history
+        saveStepHistory(stepCount);
+    });
         
 </script>
 
 </head>
 <body>
-<br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
     <!-- Loader -->
     <div id="loader" class="loader"></div>
 
@@ -563,6 +222,7 @@ onValue(stepCountRef, (snapshot) => {
 
         <h2>Step Count Data</h2> 
         <p>Steps: <span id="stepCount">Loading...</span></p>
+        <p>Fall Detection Status: <span id="fallStatus">No Falls Detected</span></p>
         <p>Current Weight: <span id="weightDisplay">70 kg</span></p>
         
         <!-- Weight setting -->
@@ -599,13 +259,13 @@ onValue(stepCountRef, (snapshot) => {
         <!-- Reset button -->
         <button id="resetBtn" type="button" onclick="resetData()">Reset</button>
         <br>
-        <a href="histotry.html" class="back-button">History Step Count</a>
+        <button id="setHisBtn"><a href="histotry.html" class="button" >History Step Count</a></button>
 
     </div>
     <br>
     <!-- Footer Section -->
     <footer>
-        <div>  V1.0.1 &copy; 2024 GD Creations. All rights reserved.</div>
+        <div>V1.0.1 &copy; 2024 GD Creations. All rights reserved.</div>
         <div>
             <a href="#privacy">Privacy Policy</a> | 
             <a href="#terms">Terms of Service</a> | 
@@ -613,15 +273,12 @@ onValue(stepCountRef, (snapshot) => {
         </div>
     </footer>
 
-
     <!-- Name Popup -->
     <div id="namePopup">
         <h2>Please enter your name:</h2>
         <input type="text" id="nameInput" placeholder="Enter your name" /><br>
         <button onclick="saveName()">Save Name</button>
     </div>
-
-
 
 </body>
 </html>

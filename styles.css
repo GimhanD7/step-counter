@@ -1,0 +1,359 @@
+ /* General Reset */
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Poppins', sans-serif; /* Modern font */
+    background-color: #1c1c1c; /* Dark premium gray background */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #f1f1f1;
+    padding: 20px;
+}
+#content{
+    padding-top: 500px;
+}
+/* Footer Styling */
+footer {
+            width: 100%;
+            padding: 20px;
+            background-color: #333; /* Darker gray footer background */
+            color: #f1f1f1;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #f1f1f1;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #00be10; /* Hover color for links */
+        }
+
+        #content {
+            padding-top: 200px;
+        }
+
+        /* Container Styling */
+        .container {
+            width: 100%;
+            max-width: 700px;
+            height: auto;
+            padding: 30px;
+            background-color: #2f2f2f; /* Medium gray container background */
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
+            text-align: center;
+           
+        }
+
+/* Heading Styling */
+h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #f1f1f1; /* Light gray for headings */
+}
+
+/* Text and Table Styling */
+p, table {
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.05); /* Subtle background for text */
+    padding: 15px 25px;
+    border-radius: 10px;
+    margin: 10px 0;
+    color: #f1f1f1;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    color: #f1f1f1;
+}
+
+/* Input Field Styling */
+#goalInput, #weightInput {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #3a3a3a; /* Darker input background */
+    color: #f1f1f1;
+    border: 1px solid #a8a8a8; /* Light gray border */
+    font-size: 1.2rem;
+    width: 100%;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#goalInput::placeholder, #weightInput::placeholder {
+    color: #bbb; /* Light gray placeholder */
+}
+
+#goalInput:focus, #weightInput:focus {
+    background-color: #444; /* Slightly lighter focus background */
+    border-color: #f1f1f1; /* Light gray border on focus */
+    outline: none;
+}
+
+/* Button Styling */
+#setGoalBtn, #setWeightBtn {
+    padding: 15px;
+    background-color: #686565; /* Medium gray button */
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#setGoalBtn:hover, #setWeightBtn:hover, #resetBtn:hover {
+    background-color: #f1f1f1; /* Lighter hover effect */
+    color: #1c1c1c; /* Darker text on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Add depth on hover */
+}
+
+/* Progress Bar Styling */
+.progress-bar {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    margin-top: 20px;
+    overflow: hidden;
+    color: #ffffff;
+}
+
+.progress {
+    height: 25px;
+    background-color: #00be10; /* Light gray progress bar */
+    border-radius: 15px;
+    width: 0%;
+    text-align: center;
+    color: #ffffff;
+    transition: width 0.6s ease;
+}
+#setHisBtn {
+    text-decoration: none;
+    padding: 15px;
+    background-color: #01aa80; /*Medium gray button*/
+    color: rgb(255, 255, 255);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    
+}
+#setHisBtn a{
+    text-decoration: none;
+    color: #ffffff; /* Darker text on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Add depth on hover */
+}
+#setHisBtn:hover {
+    background-color: #000dc7; /* Lighter hover effect */
+    color: #ffffff; /* Darker text on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Add depth on hover */
+}
+/* Loader Styling */
+.loader {
+            border: 16px solid #3a3a3a;
+            border-radius: 50%;
+            border-top: 16px solid #ffffff;
+            width: 100px;
+            height: 100px;
+            animation: spin 1.5s linear infinite;
+            margin: 0 auto;
+        }
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Name Popup Styling */
+#namePopup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #2f2f2f; /* Medium gray popup */
+    color: #f1f1f1;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+#namePopup input {
+    padding: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+    border: 1px solid #a8a8a8;
+    border-radius: 8px;
+    background-color: #3a3a3a;
+    color: #f1f1f1;
+    font-size: 1.2rem;
+}
+
+#namePopup button {
+    padding: 15px;
+    width: 100%;
+    background-color: #a8a8a8; /* Medium gray button */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+}
+
+#namePopup button:hover {
+    background-color: #f1f1f1; /* Light gray hover effect */
+    color: #1c1c1c; /* Dark text on hover */
+}
+
+/* Reset Button Styling */
+#resetBtn{
+    padding: 15px;
+    background-color: #cc0000; /* Medium gray button */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 10px rgba(66, 66, 66, 0.2);
+}
+#resetBtn:hover {
+    background-color: #f1f1f1; /* Lighter hover effect */
+    color: #1c1c1c; /* Darker text on hover */
+    box-shadow: 0 6px 12px rgba(66, 66, 66, 0.3); /* Add depth on hover */
+}
+/* Date & Time Styling */
+#dateTime {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #f9f9f9;
+}
+.back-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #004453;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #00118f;
+        }
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    p, table {
+        font-size: 1.2rem;
+    }
+
+    #stepCount {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    p, table {
+        font-size: 1rem;
+    }
+
+    #stepCount {
+        font-size: 1.2rem;
+    }
+}
+/* Add a glowing animation for the progress bar when the goal is complete */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px #00be10, 0 0 10px #00be10, 0 0 20px #00be10;
+    }
+    50% {
+        box-shadow: 0 0 15px #00be10, 0 0 30px #00be10, 0 0 45px #00be10;
+    }
+    100% {
+        box-shadow: 0 0 5px #00be10, 0 0 10px #00be10, 0 0 20px #00be10;
+    }
+}
+
+/* Confetti animation keyframes */
+@keyframes confetti {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+/* Confetti particle styling */
+.confetti {
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 20px;
+    background-color: #f9d423;
+    animation: confetti 2s ease-out infinite;
+}
+
+.confetti:nth-child(2n) {
+    background-color: #f02fc2;
+}
+
+.confetti:nth-child(3n) {
+    background-color: #16c4ff;
+}
+
+/* Apply glow animation when goal is reached */
+.glowing-progress {
+    animation: glow 1s infinite alternate;
+}

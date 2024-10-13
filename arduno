@@ -1,0 +1,860 @@
+// #include <Wire.h>
+// #include <WiFi.h>
+// #include <FirebaseESP32.h>
+// #include <MPU6050.h>
+// #include <LiquidCrystal_I2C.h>  // Include only necessary libraries
+
+// // Wi-Fi credentials
+// #define WIFI_SSID "Dialog 4G 241"
+// #define WIFI_PASSWORD "af32bdc3"
+
+// // Firebase credentials
+// FirebaseConfig config;
+// FirebaseAuth auth;
+// #define FIREBASE_HOST "iot-project-sliit-default-rtdb.asia-southeast1.firebasedatabase.app"
+// #define FIREBASE_AUTH "JaHaBiFn7nIMkRMQYhEgHeqxEsjIVLXz3yqvzr8F"
+
+// FirebaseData firebaseData;
+// FirebaseJson json;
+// MPU6050 mpu;
+
+// volatile bool resetStepCount = false;
+// int stepCount = 0;
+// bool stepDetected = false;
+// bool fallDetected = false;
+
+// // Variables for gyroscope and step detection
+// int16_t axRaw, ayRaw, azRaw;
+// int16_t gxRaw, gyRaw, gzRaw;
+// float ax, ay, az;
+// float gx, gy, gz;
+// float accelThreshold = 1.2;   // Threshold for step detection using accelerometer
+// float gyroThreshold = 30.0;  // Threshold for step detection using gyroscope (deg/sec)
+// float fallThreshold = 2.5;   // Threshold for fall detection (higher value)
+// float lastAcceleration = 0;
+// unsigned long lastStepTime = 0;
+// unsigned long stepInterval = 300; // Minimum interval between steps (in ms)
+// unsigned long lastFallTime = 0;   // To avoid multiple fall alerts in quick succession
+// unsigned long fallCooldown = 5000; // Cooldown period between fall alerts (in ms)
+
+// #define BUTTON_PIN 21
+
+// // LCD instance
+// LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address of the LCD, adjust if needed
+
+// // ISR to reset step count when button is pressed
+// void IRAM_ATTR resetCounter() {
+//   resetStepCount = true;
+// }
+
+// void setup() {
+//   Serial.begin(115200);
+
+//   // Initialize MPU6050 and I2C
+//   Wire.begin(22, 23); // SDA = GPIO22, SCL = GPIO23
+//   mpu.initialize();
+
+//   if (!mpu.testConnection()) {
+//     Serial.println("MPU6050 connection failed!");
+//     while (1);
+//   }
+
+//   // Initialize button and attach interrupt
+//   pinMode(BUTTON_PIN, INPUT_PULLUP);
+//   attachInterrupt(BUTTON_PIN, resetCounter, FALLING);
+
+//   // Initialize LCD
+//   lcd.init();
+//   lcd.backlight();
+//   lcd.setCursor(0, 0);
+//   lcd.print("Connecting...");
+
+//   // Connect to Wi-Fi
+//   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+//   Serial.print("Connecting to WiFi...");
+//   while (WiFi.status() != WL_CONNECTED) {
+//     Serial.print(".");
+//     delay(500);
+//   }
+//   Serial.println("Connected to WiFi!");
+//   lcd.clear();
+//   lcd.setCursor(0, 0);
+//   lcd.print("WiFi Connected");
+
+//   // Initialize Firebase
+//   config.host = FIREBASE_HOST;
+//   config.signer.tokens.legacy_token = FIREBASE_AUTH;
+//   Firebase.begin(&config, &auth);
+//   Firebase.reconnectWiFi(true);
+
+//   // Check Firebase connection and display result
+//   if (Firebase.ready()) {
+//     Serial.println("Firebase Ready");
+//     lcd.setCursor(0, 1);
+//     lcd.print("Let's Run!"); // Display "Let's Run" on successful Firebase connection
+//   } else {
+//     Serial.println("Firebase Connection Error");
+//     lcd.setCursor(0, 1);
+//     lcd.print("Firebase Error!"); // Display error if Firebase connection fails
+//   }
+
+//   Serial.println("Step counter system initialized.");
+// }
+
+// void loop() {
+//   // Check if the button was pressed to reset step count
+//   if (resetStepCount) {
+//     stepCount = 0;
+//     resetStepCount = false;
+//     Serial.println("Step count reset!");
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Step count reset!");
+
+//     // Display "Let's Run" after resetting step count
+//     delay(2000); // Small delay before clearing
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Let's Run!");
+//   }
+
+//   // Get raw acceleration and gyroscope data from MPU6050
+//   mpu.getMotion6(&axRaw, &ayRaw, &azRaw, &gxRaw, &gyRaw, &gzRaw);
+
+//   // Convert raw data to 'g' units (accelerometer) and deg/sec (gyroscope)
+//   ax = axRaw / 16384.0;
+//   ay = ayRaw / 16384.0;
+//   az = azRaw / 16384.0;
+//   gx = gxRaw / 131.0;  // Gyroscope sensitivity for MPU6050 is 131 LSB/deg/sec
+//   gy = gyRaw / 131.0;
+//   gz = gzRaw / 131.0;
+
+//   float totalAcceleration = sqrt(ax * ax + ay * ay + az * az);
+//   float gyroXFiltered = butterworthFilter(gx);  // Filtered gyroscope X-axis data
+
+//   // Step and fall detection using gyroscope data
+//   detectStepWithZeroCrossing(gyroXFiltered);
+//   detectFall(totalAcceleration);
+
+//   // Print step count periodically and send it to Firebase
+//   if (stepDetected) {
+//     Serial.print("Steps: ");
+//     Serial.println(stepCount);
+
+//     // Send step count to Firebase
+//     sendToFirebase(stepCount);
+
+//     // Display on LCD
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Steps: ");
+//     lcd.setCursor(7, 0);
+//     lcd.print(stepCount);
+
+//     stepDetected = false;
+//   }
+
+//   delay(100);
+// }
+
+// // Function to filter gyroscope data using Butterworth Filter
+// float butterworthFilter(float gyroData) {
+//   static float prevFilteredData = 0;
+//   float alpha = 0.9;  // Adjust this alpha value for better filtering
+//   float filteredData = alpha * prevFilteredData + (1 - alpha) * gyroData;
+//   prevFilteredData = filteredData;
+//   return filteredData;
+// }
+
+// // Function to detect steps with zero-crossing detection and adaptive threshold
+// void detectStepWithZeroCrossing(float gyroX) {
+//     static float lastGyroX = 0;
+//     static bool inSwing = false;  // Track whether we are in the middle of a step
+//     static float avgStepAmplitude = 0;
+//     float alpha = 0.1;  // Smoothing factor for adaptive thresholding
+
+//     // Calculate the step amplitude
+//     float stepAmplitude = abs(gyroX - lastGyroX);
+
+//     // Apply a moving average to smooth the step amplitude
+//     avgStepAmplitude = (1 - alpha) * avgStepAmplitude + alpha * stepAmplitude;
+
+//     // Adaptive threshold: Update the threshold based on the average step amplitude
+//     float adaptiveThreshold = avgStepAmplitude * 1.5;
+
+//     // Detect zero crossing from positive to negative or vice versa
+//     if ((lastGyroX > 0 && gyroX < 0) || (lastGyroX < 0 && gyroX > 0)) {
+//         if (stepAmplitude > adaptiveThreshold && !inSwing) {  // Ensure stepAmplitude exceeds threshold
+//             stepCount++;  // Increment step count
+//             stepDetected = true;  // Step detected
+//             inSwing = true;  // Mark that a swing (step) is in progress
+//             lastStepTime = millis();  // Record the time of the step
+//         }
+//     } else if (millis() - lastStepTime > stepInterval) {
+//         // Reset swing detection after a certain time interval
+//         inSwing = false;
+//     }
+
+//     lastGyroX = gyroX;  // Update last gyroscope reading
+// }
+
+// // Function to detect falls based on acceleration
+// void detectFall(float currentAcceleration) {
+//   unsigned long currentTime = millis();
+
+//   // Check if acceleration exceeds the fall threshold
+//   if (currentAcceleration > fallThreshold && (currentTime - lastFallTime > fallCooldown)) {
+//     fallDetected = true;
+//     lastFallTime = currentTime;
+
+//     Serial.println("Fall detected!");
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Fall Detected!");  // Display alert on LCD
+
+//     // Optional: Add a delay to allow time for the user to see the message on the LCD
+//     delay(2000);  
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Let's Run!");  // Reset LCD display after alert
+//   }
+// }
+
+// // Function to send step count to Firebase
+// void sendToFirebase(int stepCount) {
+//   String path = "/";  // Path in Firebase
+//   json.set("stepCount", stepCount);
+
+//   if (Firebase.setJSON(firebaseData, path, json)) {
+//     Serial.println("Data sent to Firebase!");
+//   } else {
+//     Serial.print("Failed to send data to Firebase: ");
+//     Serial.println(firebaseData.errorReason());
+//   }
+// }
+
+
+#include <Wire.h>
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+#include <MPU6050.h>
+#include <LiquidCrystal_I2C.h>
+
+// Wi-Fi credentials
+#define WIFI_SSID "Dialog 4G 241"
+#define WIFI_PASSWORD "af32bdc3"
+
+// Firebase credentials
+FirebaseConfig config;
+FirebaseAuth auth;
+#define FIREBASE_HOST "iot-project-sliit-default-rtdb.asia-southeast1.firebasedatabase.app"
+#define FIREBASE_AUTH "JaHaBiFn7nIMkRMQYhEgHeqxEsjIVLXz3yqvzr8F"
+
+FirebaseData firebaseData;
+FirebaseJson json;
+MPU6050 mpu;
+
+volatile bool resetStepCount = false;
+int stepCount = 0;
+bool stepDetected = false;
+bool fallDetected = false;  // Fall detection status
+
+// Variables for gyroscope and step detection
+int16_t axRaw, ayRaw, azRaw;
+int16_t gxRaw, gyRaw, gzRaw;
+float ax, ay, az;
+float gx, gy, gz;
+float accelThreshold = 1.2;   // Threshold for step detection using accelerometer
+float gyroThreshold = 30.0;  // Threshold for step detection using gyroscope (deg/sec)
+float fallThreshold = 2.5;   // Threshold for fall detection (higher value)
+float lastAcceleration = 0;
+unsigned long lastStepTime = 0;
+unsigned long stepInterval = 300; // Minimum interval between steps (in ms)
+unsigned long lastFallTime = 0;   // To avoid multiple fall alerts in quick succession
+unsigned long fallCooldown = 5000; // Cooldown period between fall alerts (in ms)
+
+#define BUTTON_PIN 21
+
+// LCD instance
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address of the LCD, adjust if needed
+
+// ISR to reset step count when button is pressed
+void IRAM_ATTR resetCounter() {
+  resetStepCount = true;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Initialize MPU6050 and I2C
+  Wire.begin(22, 23); // SDA = GPIO22, SCL = GPIO23
+  mpu.initialize();
+
+  if (!mpu.testConnection()) {
+    Serial.println("MPU6050 connection failed!");
+    while (1);
+  }
+
+  // Initialize button and attach interrupt
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  attachInterrupt(BUTTON_PIN, resetCounter, FALLING);
+
+  // Initialize LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting...");
+
+  // Connect to Wi-Fi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to WiFi...");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("Connected to WiFi!");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("WiFi Connected");
+
+  // Initialize Firebase
+  config.host = FIREBASE_HOST;
+  config.signer.tokens.legacy_token = FIREBASE_AUTH;
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
+
+  // Check Firebase connection and display result
+  if (Firebase.ready()) {
+    Serial.println("Firebase Ready");
+    lcd.setCursor(0, 1);
+    lcd.print("Let's Run!"); // Display "Let's Run" on successful Firebase connection
+  } else {
+    Serial.println("Firebase Connection Error");
+    lcd.setCursor(0, 1);
+    lcd.print("Firebase Error!"); // Display error if Firebase connection fails
+  }
+
+  Serial.println("Step counter system initialized.");
+}
+
+void loop() {
+  // Check if the button was pressed to reset step count
+  if (resetStepCount) {
+    stepCount = 0;
+    resetStepCount = false;
+    Serial.println("Step count reset!");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Step count reset!");
+
+    // Display "Let's Run" after resetting step count
+    delay(2000); // Small delay before clearing
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Let's Run!");
+  }
+
+  // Get raw acceleration and gyroscope data from MPU6050
+  mpu.getMotion6(&axRaw, &ayRaw, &azRaw, &gxRaw, &gyRaw, &gzRaw);
+
+  // Convert raw data to 'g' units (accelerometer) and deg/sec (gyroscope)
+  ax = axRaw / 16384.0;
+  ay = ayRaw / 16384.0;
+  az = azRaw / 16384.0;
+  gx = gxRaw / 131.0;  // Gyroscope sensitivity for MPU6050 is 131 LSB/deg/sec
+  gy = gyRaw / 131.0;
+  gz = gzRaw / 131.0;
+
+  // Use filtered data for step detection
+  float gyroXFiltered = butterworthFilter(gx);  // Filtered gyroscope X-axis data
+  float gyroYFiltered = butterworthFilter(gy);  // Filtered gyroscope Y-axis data
+  float gyroZFiltered = butterworthFilter(gz);  // Filtered gyroscope Z-axis data
+
+  // Combine the axes for total gyroscope motion
+  float totalGyroMotion = sqrt(gyroXFiltered * gyroXFiltered + gyroYFiltered * gyroYFiltered + gyroZFiltered * gyroZFiltered);
+  
+  // Use sensor fusion (accelerometer and gyroscope)
+  float totalAcceleration = sqrt(ax * ax + ay * ay + az * az);
+  float totalMotion = totalGyroMotion + totalAcceleration;  // Combining gyroscope and accelerometer
+
+  // Step and fall detection using gyroscope and accelerometer data
+  detectStepWithZeroCrossing(gyroXFiltered, totalMotion);
+  detectFall(totalAcceleration);
+
+  // Print step count periodically and send it to Firebase
+  if (stepDetected) {
+    Serial.print("Steps: ");
+    Serial.println(stepCount);
+
+    // Send step count to Firebase
+    sendToFirebase(stepCount, fallDetected);
+
+    // Display on LCD
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Steps: ");
+    lcd.setCursor(7, 0);
+    lcd.print(stepCount);
+
+    stepDetected = false;
+  }
+
+  delay(100);
+}
+
+// Butterworth filter to smooth the gyroscope data (translated from MATLAB)
+float butterworthFilter(float gyroData) {
+  static float prevFilteredGyro1 = 0, prevFilteredGyro2 = 0;
+  float b0 = 0.0675, b1 = 0.1349, b2 = 0.0675;  // Filter coefficients
+  float a1 = -1.1429, a2 = 0.4128;  // Filter coefficients from MATLAB
+
+  // Apply filter to gyroX
+  float filteredGyro = b0 * gyroData + b1 * prevFilteredGyro1 + b2 * prevFilteredGyro2
+                       - a1 * prevFilteredGyro1 - a2 * prevFilteredGyro2;
+
+  // Shift the values for the next iteration
+  prevFilteredGyro2 = prevFilteredGyro1;
+  prevFilteredGyro1 = gyroData;
+
+  return filteredGyro;
+}
+
+// Function to detect steps with zero-crossing detection and adaptive threshold
+void detectStepWithZeroCrossing(float gyroX, float totalMotion) {
+    static float lastGyroX = 0;
+    static bool inSwing = false;  // Track whether we are in the middle of a step
+    static float avgStepAmplitude = 0;
+    float alpha = 0.1;  // Smoothing factor for adaptive thresholding
+
+    // Calculate the step amplitude
+    float stepAmplitude = abs(gyroX - lastGyroX);
+
+    // Apply a moving average to smooth the step amplitude
+    avgStepAmplitude = (1 - alpha) * avgStepAmplitude + alpha * stepAmplitude;
+
+    // Adaptive threshold: Update the threshold based on the average step amplitude
+    float adaptiveThreshold = avgStepAmplitude * 1.5;
+
+    // Detect zero crossing from positive to negative or vice versa and check for motion strength
+    if ((lastGyroX > 0 && gyroX < 0) || (lastGyroX < 0 && gyroX > 0)) {
+        if (stepAmplitude > adaptiveThreshold && totalMotion > 0.5 && !inSwing) {  // Ensure stepAmplitude and motion exceed thresholds
+            stepCount++;  // Increment step count
+            stepDetected = true;  // Step detected
+            inSwing = true;  // Mark that a swing (step) is in progress
+            lastStepTime = millis();  // Record the time of the step
+        }
+    } else if (millis() - lastStepTime > stepInterval) {
+        // Reset swing detection after a certain time interval
+        inSwing = false;
+    }
+
+    lastGyroX = gyroX;  // Update last gyroscope reading
+}
+
+// Function to detect falls based on acceleration
+void detectFall(float currentAcceleration) {
+  unsigned long currentTime = millis();
+
+  // Check if acceleration exceeds the fall threshold
+  if (currentAcceleration > fallThreshold && (currentTime - lastFallTime > fallCooldown)) {
+    fallDetected = true;
+    lastFallTime = currentTime;
+
+    Serial.println("Fall detected!");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Fall Detected!");  // Display alert on LCD
+
+    // Send fall detection status to Firebase
+    sendFallStatusToFirebase(fallDetected);
+
+    // Optional: Add a delay to allow time for the user to see the message on the LCD
+    delay(2000);  
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Let's Run!");  // Reset LCD display after alert
+  }
+}
+
+// Function to send step count and fall detection status to Firebase
+void sendToFirebase(int stepCount, bool fallDetected) {
+  String path = "/";  // Path in Firebase
+  json.set("stepCount", stepCount);
+  json.set("fallDetected", fallDetected);  // Send fall detection status
+
+  if (Firebase.setJSON(firebaseData, path, json)) {
+    Serial.println("Data sent to Firebase!");
+  } else {
+    Serial.print("Failed to send data to Firebase: ");
+    Serial.println(firebaseData.errorReason());
+  }
+}
+
+// Function to send fall detection status to Firebase
+void sendFallStatusToFirebase(bool fallDetected) {
+  String path = "/fallDetected";  // Path in Firebase for fall detection
+  if (Firebase.setBool(firebaseData, path, fallDetected)) {
+    Serial.println("Fall detection status sent to Firebase!");
+  } else {
+    Serial.print("Failed to send fall detection status: ");
+    Serial.println(firebaseData.errorReason());
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// #include <Wire.h>
+// #include <WiFi.h>
+// #include <FirebaseESP32.h>
+// #include <MPU6050.h>
+// #include <LiquidCrystal_I2C.h>
+// #include <ESP_Mail_Client.h>  // Include the Mail Client library
+
+// // Wi-Fi credentials
+// #define WIFI_SSID "Dialog 4G 241"
+// #define WIFI_PASSWORD "af32bdc3"
+
+// // Firebase credentials
+// FirebaseConfig config;
+// FirebaseAuth auth;
+// #define FIREBASE_HOST "iot-project-sliit-default-rtdb.asia-southeast1.firebasedatabase.app"
+// #define FIREBASE_AUTH "JaHaBiFn7nIMkRMQYhEgHeqxEsjIVLXz3yqvzr8F"
+
+// FirebaseData firebaseData;
+// FirebaseJson json;
+// MPU6050 mpu;
+
+// volatile bool resetStepCount = false;
+// int stepCount = 0;
+// bool stepDetected = false;
+// bool fallDetected = false;  // Fall detection status
+
+// // Variables for gyroscope and step detection
+// int16_t axRaw, ayRaw, azRaw;
+// int16_t gxRaw, gyRaw, gzRaw;
+// float ax, ay, az;
+// float gx, gy, gz;
+// float accelThreshold = 1.2;   // Threshold for step detection using accelerometer
+// float gyroThreshold = 30.0;  // Threshold for step detection using gyroscope (deg/sec)
+// float fallThreshold = 2.5;   // Threshold for fall detection (higher value)
+// float lastAcceleration = 0;
+// unsigned long lastStepTime = 0;
+// unsigned long stepInterval = 300; // Minimum interval between steps (in ms)
+// unsigned long lastFallTime = 0;   // To avoid multiple fall alerts in quick succession
+// unsigned long fallCooldown = 5000; // Cooldown period between fall alerts (in ms)
+
+// #define BUTTON_PIN 21
+
+// // SMTP configuration
+// #define SMTP_SERVER "smtp.gmail.com"  // Gmail SMTP server
+// #define SMTP_PORT 465                 // For SSL
+// #define EMAIL_SENDER "gimhandeshapriya2000@gmail.com" // Sender email
+// #define EMAIL_PASSWORD "awnzrsfpetepmbfb"            // App-specific password (not your actual email password)
+// #define EMAIL_RECIPIENT "gimhandeshapriya567@gmail.com" // Recipient email
+// #define RECIPIENT_NAME "Gimhan"
+
+// SMTPSession smtp;
+// SMTP_Message message;
+
+// // LCD instance
+// LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address of the LCD, adjust if needed
+
+// // ISR to reset step count when button is pressed
+// void IRAM_ATTR resetCounter() {
+//   resetStepCount = true;
+// }
+
+// void setup() {
+//   Serial.begin(115200);
+
+//   // Initialize MPU6050 and I2C
+//   Wire.begin(22, 23); // SDA = GPIO22, SCL = GPIO23
+//   mpu.initialize();
+
+//   if (!mpu.testConnection()) {
+//     Serial.println("MPU6050 connection failed!");
+//     while (1);
+//   }
+
+//   // Initialize button and attach interrupt
+//   pinMode(BUTTON_PIN, INPUT_PULLUP);
+//   attachInterrupt(BUTTON_PIN, resetCounter, FALLING);
+
+//   // Initialize LCD
+//   lcd.init();
+//   lcd.backlight();
+//   lcd.setCursor(0, 0);
+//   lcd.print("Connecting...");
+
+//   // Connect to Wi-Fi
+//   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+//   Serial.print("Connecting to WiFi...");
+//   while (WiFi.status() != WL_CONNECTED) {
+//     Serial.print(".");
+//     delay(500);
+//   }
+//   Serial.println("Connected to WiFi!");
+//   lcd.clear();
+//   lcd.setCursor(0, 0);
+//   lcd.print("WiFi Connected");
+
+//   // Initialize Firebase
+//   config.host = FIREBASE_HOST;
+//   config.signer.tokens.legacy_token = FIREBASE_AUTH;
+//   Firebase.begin(&config, &auth);
+//   Firebase.reconnectWiFi(true);
+
+//   // Check Firebase connection and display result
+//   if (Firebase.ready()) {
+//     Serial.println("Firebase Ready");
+//     lcd.setCursor(0, 1);
+//     lcd.print("Let's Run!"); // Display "Let's Run" on successful Firebase connection
+//   } else {
+//     Serial.println("Firebase Connection Error");
+//     lcd.setCursor(0, 1);
+//     lcd.print("Firebase Error!"); // Display error if Firebase connection fails
+//   }
+
+//   Serial.println("Step counter system initialized.");
+
+//   // Setup SMTP settings
+//   smtp.debug(1);
+//   smtp.callback(smtpCallback);  // Optional: Callback function for SMTP debug
+// }
+
+// void loop() {
+//   // Check if the button was pressed to reset step count
+//   if (resetStepCount) {
+//     stepCount = 0;
+//     resetStepCount = false;
+//     Serial.println("Step count reset!");
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Step count reset!");
+
+//     // Display "Let's Run" after resetting step count
+//     delay(2000); // Small delay before clearing
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Let's Run!");
+//   }
+
+//   // Get raw acceleration and gyroscope data from MPU6050
+//   mpu.getMotion6(&axRaw, &ayRaw, &azRaw, &gxRaw, &gyRaw, &gzRaw);
+
+//   // Convert raw data to 'g' units (accelerometer) and deg/sec (gyroscope)
+//   ax = axRaw / 16384.0;
+//   ay = ayRaw / 16384.0;
+//   az = azRaw / 16384.0;
+//   gx = gxRaw / 131.0;  // Gyroscope sensitivity for MPU6050 is 131 LSB/deg/sec
+//   gy = gyRaw / 131.0;
+//   gz = gzRaw / 131.0;
+
+//   // Use filtered data for step detection
+//   float gyroXFiltered = butterworthFilter(gx);  // Filtered gyroscope X-axis data
+//   float gyroYFiltered = butterworthFilter(gy);  // Filtered gyroscope Y-axis data
+//   float gyroZFiltered = butterworthFilter(gz);  // Filtered gyroscope Z-axis data
+
+//   // Combine the axes for total gyroscope motion
+//   float totalGyroMotion = sqrt(gyroXFiltered * gyroXFiltered + gyroYFiltered * gyroYFiltered + gyroZFiltered * gyroZFiltered);
+  
+//   // Use sensor fusion (accelerometer and gyroscope)
+//   float totalAcceleration = sqrt(ax * ax + ay * ay + az * az);
+//   float totalMotion = totalGyroMotion + totalAcceleration;  // Combining gyroscope and accelerometer
+
+//   // Step and fall detection using gyroscope and accelerometer data
+//   detectStepWithZeroCrossing(gyroXFiltered, totalMotion);
+//   detectFall(totalAcceleration);
+
+//   // Print step count periodically and send it to Firebase
+//   if (stepDetected) {
+//     Serial.print("Steps: ");
+//     Serial.println(stepCount);
+
+//     // Send step count to Firebase
+//     sendToFirebase(stepCount, fallDetected);
+
+//     // Display on LCD
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Steps: ");
+//     lcd.setCursor(7, 0);
+//     lcd.print(stepCount);
+
+//     stepDetected = false;
+//   }
+
+//   delay(100);
+// }
+
+// // Butterworth filter to smooth the gyroscope data (translated from MATLAB)
+// float butterworthFilter(float gyroData) {
+//   static float prevFilteredGyro1 = 0, prevFilteredGyro2 = 0;
+//   float b0 = 0.0675, b1 = 0.1349, b2 = 0.0675;  // Filter coefficients
+//   float a1 = -1.1429, a2 = 0.4128;  // Filter coefficients from MATLAB
+
+//   // Apply filter to gyroX
+//   float filteredGyro = b0 * gyroData + b1 * prevFilteredGyro1 + b2 * prevFilteredGyro2
+//                        - a1 * prevFilteredGyro1 - a2 * prevFilteredGyro2;
+
+//   // Shift the values for the next iteration
+//   prevFilteredGyro2 = prevFilteredGyro1;
+//   prevFilteredGyro1 = gyroData;
+
+//   return filteredGyro;
+// }
+
+// // Function to detect steps with zero-crossing detection and adaptive threshold
+// void detectStepWithZeroCrossing(float gyroX, float totalMotion) {
+//     static float lastGyroX = 0;
+//     static bool inSwing = false;  // Track whether we are in the middle of a step
+//     static float avgStepAmplitude = 0;
+//     float alpha = 0.1;  // Smoothing factor for adaptive thresholding
+
+//     // Calculate the step amplitude
+//     float stepAmplitude = abs(gyroX - lastGyroX);
+
+//     // Apply a moving average to smooth the step amplitude
+//     avgStepAmplitude = (1 - alpha) * avgStepAmplitude + alpha * stepAmplitude;
+
+//     // Adaptive threshold: Update the threshold based on the average step amplitude
+//     float adaptiveThreshold = avgStepAmplitude * 1.5;
+
+//     // Detect zero crossing from positive to negative or vice versa and check for motion strength
+//     if ((lastGyroX > 0 && gyroX < 0) || (lastGyroX < 0 && gyroX > 0)) {
+//         if (stepAmplitude > adaptiveThreshold && totalMotion > 0.5 && !inSwing) {  // Ensure stepAmplitude and motion exceed thresholds
+//             stepCount++;  // Increment step count
+//             stepDetected = true;  // Step detected
+//             inSwing = true;  // Mark that a swing (step) is in progress
+//             lastStepTime = millis();  // Record the time of the step
+//         }
+//     } else if (millis() - lastStepTime > stepInterval) {
+//         // Reset swing detection after a certain time interval
+//         inSwing = false;
+//     }
+
+//     lastGyroX = gyroX;  // Update last gyroscope reading
+// }
+
+// // Function to detect falls based on acceleration
+// void detectFall(float currentAcceleration) {
+//   unsigned long currentTime = millis();
+
+//   // Check if acceleration exceeds the fall threshold
+//   if (currentAcceleration > fallThreshold && (currentTime - lastFallTime > fallCooldown)) {
+//     fallDetected = true;
+//     lastFallTime = currentTime;
+
+//     Serial.println("Fall detected!");
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Fall Detected!");  // Display alert on LCD
+
+//     // Send fall detection status to Firebase
+//     sendFallStatusToFirebase(fallDetected);
+
+//     // Send email on fall detection
+//     sendFallEmail();
+
+//     // Optional: Add a delay to allow time for the user to see the message on the LCD
+//     delay(2000);  
+//     lcd.clear();
+//     lcd.setCursor(0, 0);
+//     lcd.print("Let's Run!");  // Reset LCD display after alert
+//   }
+// }
+
+// // Function to send fall detection email
+// void sendFallEmail() {
+//   // Set up email session configuration
+//   ESP_Mail_Session session;
+//   session.server.host_name = SMTP_SERVER;
+//   session.server.port = SMTP_PORT;
+//   session.login.email = EMAIL_SENDER;
+//   session.login.password = EMAIL_PASSWORD;
+//   session.login.user_domain = "";
+
+//   // Create a new email message
+//   SMTP_Message message;
+//   message.sender.name = "ESP32";
+//   message.sender.email = EMAIL_SENDER;
+//   message.subject = "Fall Detected!";
+//   message.addRecipient(RECIPIENT_NAME, EMAIL_RECIPIENT);
+
+//   // Send HTML message
+//   String htmlMsg = "<div style=\"color:#000000;\"><h1>Fall Alert!</h1><p>A fall has been detected by the ESP32 system.</p></div>";
+//   message.html.content = htmlMsg.c_str();
+//   message.html.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
+
+//   // Connect to the SMTP server and send the email
+//   if (!smtp.connect(&session)) {
+//     Serial.println("SMTP connection failed");
+//     return;
+//   }
+
+//   if (!MailClient.sendMail(&smtp, &message)) {
+//     Serial.println("Error sending Email, " + smtp.errorReason());
+//   } else {
+//     Serial.println("Fall alert email sent successfully!");
+//   }
+// }
+
+
+// // Function to send step count and fall detection status to Firebase
+// void sendToFirebase(int stepCount, bool fallDetected) {
+//   String path = "/";  // Path in Firebase
+//   json.set("stepCount", stepCount);
+//   json.set("fallDetected", fallDetected);  // Send fall detection status
+
+//   if (Firebase.setJSON(firebaseData, path, json)) {
+//     Serial.println("Data sent to Firebase!");
+//   } else {
+//     Serial.print("Failed to send data to Firebase: ");
+//     Serial.println(firebaseData.errorReason());
+//   }
+// }
+
+// // Function to send fall detection status to Firebase
+// void sendFallStatusToFirebase(bool fallDetected) {
+//   String path = "/fallDetected";  // Path in Firebase for fall detection
+//   if (Firebase.setBool(firebaseData, path, fallDetected)) {
+//     Serial.println("Fall detection status sent to Firebase!");
+//   } else {
+//     Serial.print("Failed to send fall detection status: ");
+//     Serial.println(firebaseData.errorReason());
+//   }
+// }
+
+// // Optional: SMTP debug callback
+// void smtpCallback(SMTP_Status status) {
+//   Serial.println(status.info());
+// }
+
