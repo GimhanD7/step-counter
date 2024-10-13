@@ -55,21 +55,36 @@
         updateProgress(stepCount);
     });
 
+// Function to show the toast message
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.innerText = message;  // Set the message
+    toast.className = 'toast show';  // Add the 'show' class
+
+    // After 5 seconds, remove the show class
+    setTimeout(() => {
+        toast.className = toast.className.replace('show', '');
+    }, 5000);
+}
+
     // Fetch fall detection status from Firebase
     onValue(fallDetectedRef, (snapshot) => {
         const fallDetected = snapshot.val();
         const fallStatusElement = document.getElementById('fallStatus');
-        
+
         if (fallDetected) {
             fallStatusElement.innerText = "Fall Detected!";
             fallStatusElement.style.color = "red";  // Highlight the fall detection in red
 
-            // After 10 seconds, revert back to "No Falls Detected"
+            // Show toast message for fall detection
+            showToast("Fall Detected!");
+
+            // After 5 seconds, revert back to "No Falls Detected"
             setTimeout(() => {
                 fallStatusElement.innerText = "No Falls Detected";
                 fallStatusElement.style.color = "green";  // Default green color
-            }, 5000);  // 10 seconds delay
-            
+            }, 10000);  // 10 seconds delay
+
         } else {
             fallStatusElement.innerText = "No Falls Detected";
             fallStatusElement.style.color = "green";  // Default green color
@@ -263,6 +278,9 @@
         <button id="setHisBtn"><a href="histotry.html" class="button" >History Step Count</a></button>
 
     </div>
+    <!-- Toast container -->
+    <div id="toast" class="toast">Fall Detected!</div>
+    
     <br>
     <!-- Footer Section -->
     <footer>
