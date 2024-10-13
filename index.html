@@ -32,6 +32,18 @@
     const weightRef = ref(database, 'weight');  // Reference to store user's weight
     const fallDetectedRef = ref(database, 'fallDetected');  // Reference for fall detection status
 
+            // Notification Permissions
+            window.addEventListener('load', () => {
+            // Request notification permissions
+            if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        console.log("Notification permission granted.");
+                    }
+                });
+            }
+        });
+        
     // Fetch and display step count and update calories burned and progress
     let stepCount = 0;
     let userWeight = 70;  // Default weight
