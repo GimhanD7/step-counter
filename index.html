@@ -32,18 +32,6 @@
     const weightRef = ref(database, 'weight');  // Reference to store user's weight
     const fallDetectedRef = ref(database, 'fallDetected');  // Reference for fall detection status
 
-            // Notification Permissions
-            window.addEventListener('load', () => {
-            // Request notification permissions
-            if ('Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        console.log("Notification permission granted.");
-                    }
-                });
-            }
-        });
-        
     // Fetch and display step count and update calories burned and progress
     let stepCount = 0;
     let userWeight = 70;  // Default weight
@@ -67,33 +55,26 @@
         updateProgress(stepCount);
     });
 
-// Fetch fall detection status and trigger notification
-onValue(fallDetectedRef, (snapshot) => {
-            const fallDetected = snapshot.val();
-            const fallStatusElement = document.getElementById('fallStatus');
-            
-            if (fallDetected) {
-                fallStatusElement.innerText = "Fall Detected!";
-                fallStatusElement.style.color = "red";
+    // Fetch fall detection status from Firebase
+    onValue(fallDetectedRef, (snapshot) => {
+        const fallDetected = snapshot.val();
+        const fallStatusElement = document.getElementById('fallStatus');
+        
+        if (fallDetected) {
+            fallStatusElement.innerText = "Fall Detected!";
+            fallStatusElement.style.color = "red";  // Highlight the fall detection in red
 
-                // Trigger browser notification if a fall is detected
-                if (Notification.permission === "granted") {
-                    new Notification("Fall Detected!", {
-                        body: "A fall has been detected. Please check your device for more information.",
-                        icon: 'fall_icon.png'  // Add an icon if you have one
-                    });
-                }
-
-                // Revert fall detection status after 5 seconds
-                setTimeout(() => {
-                    fallStatusElement.innerText = "No Falls Detected";
-                    fallStatusElement.style.color = "green";
-                }, 5000);
-            } else {
+            // After 10 seconds, revert back to "No Falls Detected"
+            setTimeout(() => {
                 fallStatusElement.innerText = "No Falls Detected";
-                fallStatusElement.style.color = "green";
-            }
-        });
+                fallStatusElement.style.color = "green";  // Default green color
+            }, 5000);  // 10 seconds delay
+            
+        } else {
+            fallStatusElement.innerText = "No Falls Detected";
+            fallStatusElement.style.color = "green";  // Default green color
+        }
+    });
 
 
 
