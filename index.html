@@ -67,6 +67,7 @@ function showToast(message) {
     }, 5000);
 }
 
+
     // Fetch fall detection status from Firebase
     onValue(fallDetectedRef, (snapshot) => {
         const fallDetected = snapshot.val();
@@ -81,6 +82,11 @@ function showToast(message) {
 
             // After 5 seconds, revert back to "No Falls Detected"
             setTimeout(() => {
+                // Reset the fall detection value in Firebase
+                // set(fallDetectedRef, false);
+                
+
+
                 fallStatusElement.innerText = "No Falls Detected";
                 fallStatusElement.style.color = "green";  // Default green color
             }, 10000);  // 10 seconds delay
@@ -90,6 +96,7 @@ function showToast(message) {
             fallStatusElement.style.color = "green";  // Default green color
         }
     });
+
 
 
 
@@ -144,30 +151,34 @@ function showToast(message) {
         set(weightRef, weight);
     });
 
-    // Reset all data
+    // Test by removing the page reload and check the data reset
     window.resetData = function() {
-        set(stepCountRef, 0);  // Reset step count
-        set(goalRef, 10000);   // Reset goal to default (10000)
-        set(weightRef, 70);    // Reset weight to default (70kg)
-        set(fallDetectedRef, false); // Reset fall detection to false
+        const resetStepCount = set(stepCountRef, 0);
+        const resetGoal = set(goalRef, 10000);
+        const resetWeight = set(weightRef, 70);
+        const resetFallDetected = set(fallDetectedRef, false);
 
-        // Clear localStorage (name)
-        localStorage.removeItem('userName');
-        
-        // Reset UI elements
-        document.getElementById('stepCount').innerText = 0;
-        document.getElementById('goalDisplay').innerText = 10000;
-        document.getElementById('weightDisplay').innerText = '70 kg';
-        document.getElementById('calories').innerText = 0;
-        document.getElementById('distance').innerText = 0;
-        document.getElementById('progress').style.width = '0%';
-        document.getElementById('progress').innerText = '0%';
-        document.getElementById('fallStatus').innerText = "No Falls Detected";
-        document.getElementById('fallStatus').style.color = "green";
+        Promise.all([resetStepCount, resetGoal, resetWeight, resetFallDetected])
+            .then(() => {
+                console.log("All Firebase data reset successfully");
 
-        // Refresh the web page after resetting the data
-        location.reload();
+                // Update UI elements directly without reloading
+                document.getElementById('stepCount').innerText = 0;
+                document.getElementById('goalDisplay').innerText = 10000;
+                document.getElementById('weightDisplay').innerText = '70 kg';
+                document.getElementById('calories').innerText = 0;
+                document.getElementById('distance').innerText = 0;
+                document.getElementById('progress').style.width = '0%';
+                document.getElementById('progress').innerText = '0%';
+                document.getElementById('fallStatus').innerText = "No Falls Detected";
+                document.getElementById('fallStatus').style.color = "green";
+            })
+            .catch((error) => {
+                console.error("Error resetting data:", error);
+            });
     };
+
+
 
     // Update progress bar
     onValue(goalRef, (snapshot) => {
