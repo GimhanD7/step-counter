@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Step Count History</title>
+    <title>Step Count and Fall Detection History</title>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -83,35 +83,51 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Fetch step count history from Firebase
+        // Function to load all relevant data from Firebase
         function loadHistory() {
-            const historyRef = ref(database, 'history');
+            const rootRef = ref(database, '/'); // Get the root of the Firebase database
             const historyTable = document.getElementById('historyTable');
             
-            onValue(historyRef, (snapshot) => {
-                const historyData = snapshot.val();
+            onValue(rootRef, (snapshot) => {
+                const allData = snapshot.val();
                 
-                // Clear previous history data
+                // Clear previous data
                 historyTable.innerHTML = '';
 
-                // Check if historyData exists
-                if (historyData) {
-                    // Loop through each date in the history and create a row in the table
-                    for (const date in historyData) {
-                        const row = document.createElement('tr');
-                        const dateCell = document.createElement('td');
-                        const stepsCell = document.createElement('td');
+                // Check if data exists
+                if (allData) {
+                    // Display step count and fall detection status
+                    const stepCount = allData.stepCount || "N/A";
+                    const fallDetected = allData.fallDetected ? "Yes" : "No";
+                    const currentDateTime = new Date().toLocaleString();
 
-                        dateCell.innerText = date;
-                        stepsCell.innerText = historyData[date];
+                    const row1 = document.createElement('tr');
+                    row1.innerHTML = `<td>Step Count</td><td>${stepCount}</td>`;
+                    historyTable.appendChild(row1);
 
-                        row.appendChild(dateCell);
-                        row.appendChild(stepsCell);
-                        historyTable.appendChild(row);
+                    const row2 = document.createElement('tr');
+                    row2.innerHTML = `<td>Fall Detected</td><td>${fallDetected}</td>`;
+                    historyTable.appendChild(row2);
+
+                    const row3 = document.createElement('tr');
+                    row3.innerHTML = `<td>Date & Time</td><td>${currentDateTime}</td>`;
+                    historyTable.appendChild(row3);
+
+                    // Display step history (by date)
+                    if (allData.history) {
+                        for (const date in allData.history) {
+                            const stepCountForDate = allData.history[date];
+                            const historyRow = document.createElement('tr');
+                            historyRow.innerHTML = `<td>${date}</td><td>${stepCountForDate}</td>`;
+                            historyTable.appendChild(historyRow);
+                        }
+                    } else {
+                        // If no history data is available
+                        historyTable.innerHTML += `<tr><td colspan="2">No step history available.</td></tr>`;
                     }
                 } else {
-                    // If no history data is available
-                    historyTable.innerHTML = `<tr><td colspan="2">No history available.</td></tr>`;
+                    // If no data is available
+                    historyTable.innerHTML = `<tr><td colspan="2">No data available.</td></tr>`;
                 }
             });
         }
@@ -121,16 +137,16 @@
     </script>
 </head>
 <body>
-    <h1>Step Count History</h1>
+    <h1>Step Count and Fall Detection History</h1>
     <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Steps</th>
+                <th>Data Type</th>
+                <th>Value</th>
             </tr>
         </thead>
         <tbody id="historyTable">
-            <!-- History data will load here -->
+            <!-- Data will load here -->
         </tbody>
     </table>
 
