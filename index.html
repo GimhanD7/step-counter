@@ -4,8 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Step Count with Fall Detection</title>
-    <link rel="stylesheet" href="styles.css">
-
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <style>
+        @keyframes slideInAndFade {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    
+        @keyframes slideOutAndFade {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+    
+        /* Slide-in animation */
+        .animate-slide-in {
+            animation: slideInAndFade 0.5s ease-out forwards;
+        }
+    
+        /* Slide-out animation */
+        .animate-slide-out {
+            animation: slideOutAndFade 0.5s ease-out forwards;
+        }
+    </style>
+    
    <script type="module">
     // Import the Firebase modules you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
@@ -55,17 +88,23 @@
         updateProgress(stepCount);
     });
 
-// Function to show the toast message
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.innerText = message;  // Set the message
-    toast.className = 'toast show';  // Add the 'show' class
+        function showToast() {
+        const toast = document.getElementById('toast');
 
-    // After 5 seconds, remove the show class
-    setTimeout(() => {
-        toast.className = toast.className.replace('show', '');
-    }, 5000);
-}
+        // Show the toast by removing opacity-0 and making it visible
+        toast.classList.remove('opacity-0'); // Remove hidden state
+        toast.classList.add('opacity-100');  // Add visible state
+
+        // Auto-hide the toast after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('opacity-100'); // Remove visible state
+            toast.classList.add('opacity-0');      // Hide the toast
+        }, 3000); // Duration to show the toast (3 seconds)
+    }
+
+
+
+// Call showToast() when needed to display the message
 
 
     // Fetch fall detection status from Firebase
@@ -150,33 +189,53 @@ function showToast(message) {
         const weight = document.getElementById('weightInput').value;
         set(weightRef, weight);
     });
-
-    // Test by removing the page reload and check the data reset
+    // document.getElementById('resetBtn').addEventListener('click', resetData);
     window.resetData = function() {
-        const resetStepCount = set(stepCountRef, 0);
-        const resetGoal = set(goalRef, 10000);
-        const resetWeight = set(weightRef, 70);
-        const resetFallDetected = set(fallDetectedRef, false);
+    console.log("Starting reset...");
 
-        Promise.all([resetStepCount, resetGoal, resetWeight, resetFallDetected])
-            .then(() => {
-                console.log("All Firebase data reset successfully");
+    // Reset step count
+    const resetStepCount = set(stepCountRef, 0)
+        .then(() => console.log("Step count reset"))
+        .catch(error => console.error("Error resetting step count:", error));
 
-                // Update UI elements directly without reloading
-                document.getElementById('stepCount').innerText = 0;
-                document.getElementById('goalDisplay').innerText = 10000;
-                document.getElementById('weightDisplay').innerText = '70 kg';
-                document.getElementById('calories').innerText = 0;
-                document.getElementById('distance').innerText = 0;
-                document.getElementById('progress').style.width = '0%';
-                document.getElementById('progress').innerText = '0%';
-                document.getElementById('fallStatus').innerText = "No Falls Detected";
-                document.getElementById('fallStatus').style.color = "green";
-            })
-            .catch((error) => {
-                console.error("Error resetting data:", error);
-            });
-    };
+    // Reset goal
+    const resetGoal = set(goalRef, 10000)
+        .then(() => console.log("Goal reset"))
+        .catch(error => console.error("Error resetting goal:", error));
+
+    // Reset weight
+    const resetWeight = set(weightRef, 70)
+        .then(() => console.log("Weight reset"))
+        .catch(error => console.error("Error resetting weight:", error));
+
+    // Reset fall detection
+    const resetFallDetected = set(fallDetectedRef, false)
+        .then(() => console.log("Fall detected reset"))
+        .catch(error => console.error("Error resetting fall detected:", error));
+
+    // Use Promise.all to make sure all Firebase operations are done
+    Promise.all([resetStepCount, resetGoal, resetWeight, resetFallDetected])
+        .then(() => {
+            console.log("All Firebase data reset successfully");
+
+            // Update UI elements directly without reloading the page
+            document.getElementById('stepCount').innerText = 0;
+            document.getElementById('goalDisplay').innerText = 10000;
+            document.getElementById('weightDisplay').innerText = '70 kg';
+            document.getElementById('calories').innerText = 0;
+            document.getElementById('distance').innerText = 0;
+            document.getElementById('progress').style.width = '0%';
+            document.getElementById('progress').innerText = '0%';
+            document.getElementById('fallStatus').innerText = "No Falls Detected";
+            document.getElementById('fallStatus').style.color = "green";
+        })
+        .catch((error) => {
+            console.error("Error resetting data:", error);
+        });
+};
+
+
+
 
 
 
@@ -232,83 +291,109 @@ function showToast(message) {
         // Save step count to history
         saveStepHistory(stepCount);
     });
+
+    
         
 </script>
-
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<body class="bg-gray-900 text-white font-poppins flex flex-col justify-center items-center min-h-screen">
+    <br>
     <!-- Loader -->
-    <div id="loader" class="loader"></div>
+<!-- Loader -->
+<div id="loader" class="border-t-4 border-white border-solid rounded-full w-24 h-24 animate-spin my-10 absolute inset-0 m-auto"></div>
+
 
     <!-- Content -->
-    <div id="content">
+    <div id="content" class="text-center mt-12">
         <!-- Live Date & Time Display -->
-        <div id="dateTime">Loading date and time...</div>
-        <h1>Welcome, <span id="userNameDisplay">User</span></h1>
+        <div id="dateTime" class="text-lg font-semibold mb-6">Loading date and time...</div>
 
-        <h2>Step Count Data</h2> 
-        <p>Steps: <span id="stepCount">Loading...</span></p>
-        <p>Fall Detection Status: <span id="fallStatus">No Falls Detected</span></p>
-        <p>Current Weight: <span id="weightDisplay">70 kg</span></p>
-        
+        <h1 class="text-3xl font-bold mb-5">Welcome, <span id="userNameDisplay">User</span></h1>
+
+        <h2 class="text-2xl font-semibold mb-3">Step Count Data</h2>
+        <p class="mb-2">Steps: <span id="stepCount" class="font-semibold">Loading...</span></p>
+        <p class="mb-2">Fall Detection Status: <span id="fallStatus" class="font-semibold">No Falls Detected</span></p>
+        <p class="mb-4">Current Weight: <span id="weightDisplay" class="font-semibold">70 kg</span></p>
+
         <!-- Weight setting -->
-        <div>
-            <input type="number" id="weightInput" placeholder="Enter your weight (kg)" />
-            <button id="setWeightBtn">Set Weight</button>
+        <div class="mb-6">
+            <input type="number" id="weightInput" placeholder="Enter your weight (kg)"
+                class="w-full max-w-xs p-3 bg-gray-700 text-white rounded-lg border border-gray-500 placeholder-gray-400 focus:bg-gray-600 focus:border-white mb-4" />
+            <button id="setWeightBtn"
+                class="w-full max-w-xs p-3 bg-green-600 text-white rounded-lg transition duration-300 hover:bg-green-700">Set Weight</button>
         </div>
-        
+
         <!-- Calories burned and distance walked table -->
-        <table>
-            <tr>
-                <th>Calories Burned</th>
-                <th>Distance (km)</th>
+        <table class="w-full max-w-md mx-auto bg-gray-800 rounded-lg shadow-lg text-center">
+            <tr class="bg-gray-700">
+                <th class="p-3">Calories Burned</th>
+                <th class="p-3">Distance (km)</th>
             </tr>
-            <tr>
-                <td id="calories">0</td>
-                <td id="distance">0</td>
+            <tr class="bg-gray-600">
+                <td id="calories" class="p-3">0</td>
+                <td id="distance" class="p-3">0</td>
             </tr>
         </table>
 
         <!-- Goal setting -->
-        <div>
-            <input type="number" id="goalInput" placeholder="Set your step goal" />
-            <button id="setGoalBtn">Set Goal</button>
+        <div class="mt-6">
+            <input type="number" id="goalInput" placeholder="Set your step goal"
+                class="w-full max-w-xs p-3 bg-gray-700 text-white rounded-lg border border-gray-500 placeholder-gray-400 focus:bg-gray-600 focus:border-white mb-4" />
+            <button id="setGoalBtn"
+                class="w-full max-w-xs p-3 bg-blue-600 text-white rounded-lg transition duration-300 hover:bg-blue-700">Set Goal</button>
         </div>
 
-        <p>Your Goal: <span id="goalDisplay">10000</span> steps</p>
+        <p class="mt-4 mb-4">Your Goal: <span id="goalDisplay" class="font-semibold">10000</span> steps</p>
 
         <!-- Progress bar -->
-        <div class="progress-bar">
-            <div class="progress" id="progress">0%</div>
+        <div class="w-full max-w-md bg-gray-700 rounded-lg h-6 overflow-hidden">
+            <div id="progress" class="bg-green-600 h-full text-center text-white" style="width: 0%;">0%</div>
         </div>
 
         <!-- Reset button -->
-        <button id="resetBtn" type="button" onclick="resetData()">Reset</button>
-        <br>
-        <button id="setHisBtn"><a href="histotry.html" class="button" >History Step Count</a></button>
+        <button id="resetBtn" onclick="resetData()"
+            class="w-full max-w-xs mt-6 p-3 bg-red-600 text-white rounded-lg transition duration-300 hover:bg-red-700">Reset</button>
 
+        <!-- History button -->
+        <br>
+        <button id="setHisBtn"
+            class="w-full max-w-xs mt-4 p-3 bg-purple-600 text-white rounded-lg transition duration-300 hover:bg-purple-700">
+            <a href="histotry.html" class="block">History Step Count</a>
+        </button>
     </div>
-    <!-- Toast container -->
-    <div id="toast" class="toast">Fall Detected!</div>
-    
-    <br>
+<br>
+<!-- Toast container-->
+
+<div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-red-500 text-white py-3 px-6 rounded-md shadow-lg opacity-0 transition-opacity duration-500 ease-in-out">
+    Fall Detected!
+</div>
+
+
+
+
+
     <!-- Footer Section -->
-    <footer>
+    <footer class="w-full text-center p-4 bg-gray-800 text-gray-400">
         <div>V1.0.1 &copy; 2024 GD Creations. All rights reserved.</div>
-        <div>
-            <a href="#privacy">Privacy Policy</a> | 
-            <a href="#terms">Terms of Service</a> | 
-            <a href="#contact">Contact Us</a>
+        <div class="mt-2">
+            <a href="#privacy" class="hover:text-white mx-2">Privacy Policy</a> |
+            <a href="#terms" class="hover:text-white mx-2">Terms of Service</a> |
+            <a href="#contact" class="hover:text-white mx-2">Contact Us</a>
         </div>
     </footer>
 
     <!-- Name Popup -->
-    <div id="namePopup">
-        <h2>Please enter your name:</h2>
-        <input type="text" id="nameInput" placeholder="Enter your name" /><br>
-        <button onclick="saveName()">Save Name</button>
+    <div id="namePopup"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-800 text-white p-8 rounded-lg shadow-xl max-w-sm w-full text-center">
+            <h2 class="text-2xl font-bold mb-4">Please enter your name:</h2>
+            <input type="text" id="nameInput" placeholder="Enter your name"
+                class="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-500 placeholder-gray-400 focus:bg-gray-600 focus:border-white mb-4" />
+            <button onclick="saveName()"
+                class="w-full p-3 bg-green-600 text-white rounded-lg transition duration-300 hover:bg-green-700">Save
+                Name</button>
+        </div>
     </div>
-
 </body>
 </html>
